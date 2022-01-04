@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>AutoZap | Seu Automatizdor do WhatsApp</title>
+	<style>
+		/* .client {
+			border: 1px solid #ccc;
+			padding: 20px;
+			box-sizing: border-box;
+			display: inline-block;
+			margin: 10px;
+		} */
+		.hide {
+			display: none;
+		}
+		input{
+			border-radius: 7px;
+			padding: 5px;
+			font-size: 20px;
+			width: calc(100% - 10px);
+			margin: 10px 0px;
+			border: 2px solid #e5e5e5;
+		}
+		button{
+			width: 100%;
+			font-size: 20px;
+			padding: 5px;
+			border-radius: 7px;
+			border: 2px solid #e5e5e5;
+		}
+		.hm span {display:none;position:relative}
+		.hm:hover span {display:block;position:absolute;bottom:10px;width: calc(294px - 20px); text-align:center;
+		}
+
+		/* daqui pra baixo é só estética para demonstração */
+		.hm {
+			border-radius: 3px;
+			color: #000;
+			border: 1px solid #000;
+			padding: 0px 5px;
+			font-size: 15px;
+		}
+
+		.hm span {
+			width:8em;
+			color:#fff;
+			background:#999;
+			border-radius: 5px;
+			padding: 10px;
+			font-size: 20px;
+}
+		</style>
+</head>
+<body style="background:#04AA6D url('https://papagaioagencia.com.br/wp-content/uploads/2021/12/bg.jpg'); color:#000; background-size: contain; margin: 0px;">
+
+	<div style="width: 100%; text-align: center; width: 100vw; height: 100vh; display: flex; flex-direction: row; justify-content: center; align-items: center;">
+
+		<div id="app" style="width: 330px; margin: 20px auto; border: 1px solid #ccc; border-radius: 7px; background-color: #f7f7f7; padding:15px; box-shadow: 5px 5px 25px #1c1c1c;">
+			<img style="width: 100%; margin-bottom: -30px;" src="https://papagaioagencia.com.br/wp-content/uploads/2021/12/logo_autozap.png">
+			<p><b>Seu Automatizador de WhatsApp</b></p>
+
+			<div id="disconnect" style="background-color: #fff; padding: 20px; border-radius: 7px; box-shadow: 1px 1px 5px #ededed; text-align: left;">
+				
+				<div class="form-container">
+					<label for="client-id">Nome do Robô: <span class="hm">?<span>Mesmo nome que você criou em seu app.</span></span></label><br>
+					<input type="text" id="client-id" placeholder="meu-bot">
+					<br><br>
+					<label for="client-description">Seu número: </br> (Cód. País + Cód. Área + Número) <span class="hm">?<span>Número do celular em que vai funcionar o robô.</span></span></label><br>
+					<input type="number" id="tel-number" placeholder="5522981002635">
+					<br><br>
+					<button class="add-client-btn">Gerar Qr Code</button>
+				</div>
+
+				
+				
+			</div>
+
+			<div class="client-container" style="background-color: #fff; padding: 20px; border-radius: 7px; box-shadow: 1px 1px 5px #ededed;">
+				
+				<!-- <h3 class="title"></h3> -->
+				<p>Escaneie o QR Code abaixo para logar com o seu whatsApp</p>
+				<div class="client hide">
+					<img src="" alt="QR Code" id="qrcode">
+					<!-- <h3>Logs:</h3>
+					<ul class="logs"></ul> -->
+				</div>
+
+			</div>
+
+			<div id="connect" style="background-color: #fff; padding: 20px; border-radius: 7px; box-shadow: 1px 1px 5px #ededed;">
+				<img width="100%" src="https://papagaioagencia.com.br/wp-content/uploads/2021/12/unnamed.gif">
+				<p>O AutoZap está conectado ao seu WhatsApp, mantenha o WhatsApp Conectado para a automação funcionar.</p>
+			</div>
+
+			<div id="carregando" style="background-color: #fff; padding: 20px; border-radius: 7px; box-shadow: 1px 1px 5px #ededed;">
+				<img width="100%" src="https://papagaioagencia.com.br/wp-content/uploads/2021/12/carregando.gif">
+				<p>Aguarde um momento por favor, estamos processando sua solicitação.</p>
+			</div>
+
+			<p style="color: #666;"><b>AutoZap</b> © Todos os direitos reservados.</p>
+
+		</div>
+
+	</div>
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+	<script>
+		$(document).ready(function() {
+			var socket = io();
+
+			$('#disconnect').show();
+			$('#carregando').hide();
+			$('#connect').hide();
+			$('.client-container').hide();
+
+
+			const urlParams = new URLSearchParams(window.location.search);
+			const bot = urlParams.get('bot');
+			// console.log(bot);
+
+			// Clique do Botão
+			$('.add-client-btn').click(function() {
+
+				var clientId = $('#client-id').val();
+				var codigo = '@c.us';
+				var clientDescription = $('#tel-number').val()+codigo;
+
+				if(clientId == bot){
+
+					// $('#carregando').show();
+					$('.client-container').show();
+					$('#disconnect').hide();
+					// $('#connect').hide();
+
+					var template = $('.client').first().clone()
+										   .removeClass('hide')
+										   .addClass(clientId);
+					template.find('.title').html(clientId);
+					template.find('.description').html(clientDescription);
+					$('.client-container').append(template);
+					// $('#carregando').hide();
+
+					socket.emit('create-session', {
+						id: clientId,
+						description: clientDescription
+					});
+
+				}else{
+					alert('O Nome do seu bot não está correto, verifique no seu app por favor!')
+				}
+
+				
+			});
+
+			socket.on('init', function(data) {
+
+				
+
+				$('.client-container .client').not(':first').remove();
+				
+				for (var i = 0; i < data.length; i++) {
+					
+					// console.log(data[i].id);
+					// console.log(bot);
+
+					if(data[i].id == bot){
+
+						// alert('igual');
+
+						var session = data[i];
+
+						var clientId = session.id;
+						var clientDescription = session.description;
+						var template = $('.client').first().clone()
+												.removeClass('hide')
+												.addClass(clientId);
+						template.find('.title').html(clientId);
+						template.find('.description').html(clientDescription);
+						$('.client-container').append(template);
+
+						if (session.ready) {
+							$(`.client.${session.id} .logs`).append($('<li>').text('Whatsapp is ready!'));
+							$('#disconnect').hide();
+							$('#connect').show();
+		
+						} else {
+							$(`.client.${session.id} .logs`).append($('<li>').text('Connecting...'));
+							// $('#carregando').show();
+							$('#disconnect').hide();
+							$('.client-container').show();
+						}
+
+					}
+					// else{
+					// 	alert('doido');
+					// 	$('#disconnect').show();
+					// 	$('#carregando').hide();
+					// 	$('#connect').hide();
+					// 	$('.client-container').hide();
+					// }
+
+					
+				}
+			});
+
+			socket.on('remove-session', function(id) {
+				$(`.client.${id}`).remove();
+			});
+
+			socket.on('message', function(data) {
+				$(`.client.${data.id} .logs`).append($('<li>').text(data.text));
+			});
+
+			socket.on('qr', function(data) {
+				$(`.client.${data.id} #qrcode`).attr('src', data.src);
+				$(`.client.${data.id} #qrcode`).show();
+
+			});
+
+			socket.on('ready', function(data) {
+				$(`.client.${data.id} #qrcode`).hide();
+				$('#connect').show();
+				$('.client-container').hide();
+
+			});
+
+			socket.on('authenticated', function(data) {
+				$(`.client.${data.id} #qrcode`).hide();
+				$('#connect').show();
+				$('.client-container').hide();
+
+			});
+		});
+	</script>
+</body>
+</html>
