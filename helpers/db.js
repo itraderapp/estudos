@@ -20,7 +20,21 @@ const getReply = async (tabela , keyword) => {
 
 const getUser = async (tabela) => {
 	const connection = await createConnection();
-	const [rows] = await connection.execute('SELECT message FROM '+tabela+' WHERE keyword = "usuarioproautozap" ');
+	const [rows] = await connection.execute('SELECT message FROM '+tabela+' WHERE keyword = "!userpro!" ');
+	if (rows.length > 0) return rows[0].message;
+	return false;
+}
+
+const getBoasVindas = async (tabela) => {
+	const connection = await createConnection();
+	const [rows] = await connection.execute('SELECT message FROM '+tabela+' WHERE keyword = "!msgboasvindas!" ');
+	if (rows.length > 0) return rows[0].message;
+	return false;
+}
+
+const getContatos = async (tabela) => {
+	const connection = await createConnection();
+	const [rows] = await connection.execute('SELECT message FROM '+tabela+' WHERE keyword = "!contatowp!" '); //!todos! //!contatos! //!naocontatos!
 	if (rows.length > 0) return rows[0].message;
 	return false;
 }
@@ -28,5 +42,7 @@ const getUser = async (tabela) => {
 module.exports = {
 	createConnection,
 	getReply,
-	getUser
+	getUser,
+	getBoasVindas,
+	getContatos
 }
